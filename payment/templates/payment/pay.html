@@ -1,0 +1,20 @@
+{% extends "main.html" %}
+
+{% load static %}
+
+{% block content %}
+{% include "header.html" %}
+
+<div class="container d-flex justify-content-center py-5" style="min-height: 465px !important;">
+    <div class="">
+            <button type="button" class="btn round btn-primary" onclick="Pay();" >Proceed to Payment</button>
+    </div>
+</div>
+{% include "footer.html"%}	
+<script>
+    function Pay(){
+        var url = "{{url}}"
+        window.open(url,'_blank');
+    }
+</script>
+{% endblock content %}

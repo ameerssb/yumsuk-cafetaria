@@ -1,0 +1,41 @@
+{% load static %}
+{% load tags %}
+
+<nav class="navbar navbar-expand-md navbar-light fixed-top bg-success">
+  <div class="container-fluid">
+    <div class="">
+      <img class="" src="{% static 'images/biriyani.jpg' %}" alt="" width="72" height="57">      
+      <a class="navbar-brand text-white fw-bold ps-md-3" href="{% url 'home' %}">Yumsuk Cafeteria</a>  
+    </div>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="flex-row-reverse collapse navbar-collapse" id="navbarCollapse">
+      <ul class="navbar-nav row">
+          {% if user.is_authenticated %}
+          <li class="col-md-auto nav-item pb-2">
+            <a class="btn btn-primary rounded-0" href="{% url 'orders' %}">Order<a class="btn btn-secondary rounded-0" id="order" href="{% url 'orders' %}">{{order_count}}</a></a>
+          </li> 
+          <li class="col-md-auto nav-item pb-2">
+            <a class="btn btn-warning rounded-0" href="{% url 'cart' %}">Cart<a class="btn btn-secondary rounded-0" id="cart" href="{% url 'cart' %}">{{cart_count}}</a></a>            
+          </li>          
+          <li class="col-md-auto nav-item pb-2 me-4 dropstart">
+            <button class="btn btn-light px-3 dropdown-toggle" type="button" id="dropdownMenuButtonSM" data-bs-toggle="dropdown" aria-expanded="false">{{user.first_name}}</button>
+            <div class="dropdown-menu" aria-labelledby="dropdownMenuButtonSM">
+              <p class="dropdown-item text-center text-success fw-bold mb-0">Hi, {{user.first_name}}</p>
+              <a class="dropdown-item text-center" href="{% url 'password_change' %}">Change Password</a>
+              <a class="dropdown-item text-center" href="{% url 'Signout' %}">logout</a>
+            </div>
+          </li>
+          {% else %}
+          <li class="col-md-auto nav-item">
+            <a href="{% url 'Signin' %}" class="btn btn-outline-light rounded-0">Register</a>
+          </li>
+          <li class="col-md-auto nav-item me-4">
+            <a href="{% url 'Signin' %}" class="btn btn-light text-success rounded-0">Sign in</a>
+          </li>
+          {% endif %}
+      </ul>
+    </div>
+  </div>
+</nav>

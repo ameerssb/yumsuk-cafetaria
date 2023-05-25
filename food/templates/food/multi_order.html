@@ -1,0 +1,142 @@
+{% extends "main.html" %}
+
+{% load static %}
+
+{% block content %}
+{% include "header.html" %}
+<div class="container py-5">
+    <div class="row d-flex justify-content-center">
+        <div class="col-md-8">
+            <h4 class="d-flex justify-content-between align-items-center mb-3">
+                <span class="text-muted">Your Order</span>
+                <span class="btn btn-secondary" id="cart_count">{{orders_count}}</span>
+            </h4>
+            {% if messages %}
+            <div class="messages text-danger text-center fs-4">
+                {% for message in messages %}
+                <span {% if message.tags %} class="{{ message.tags }}" {% endif %}>{{message}}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+
+            <form class="container px-2 py-2" action="" method="post">
+                {% csrf_token %}            
+                {% for price,quantity,item in orders %}
+                <ul class="list-group mb-3">
+                    <li class="list-group-item d-flex justify-content-between">
+                        <div>
+                            <input type="hidden" name="item" id="item" value="{{item.id}}">
+                            <input type="hidden" name="quantity" id="quantity" value="{{quantity}}">
+                            <input type="hidden" name="price" id="price" value="{{price}}">
+                            <h6 class="my-0">{{item.name}}</h6>
+                            {% if item.description != '' %}
+                                <small class="text-muted">{{item.description}}</small>
+                            {% else %}
+                            <small class="text-muted">No description is available</small>                        
+                            {% endif %}
+                            <h6 class="text-dark">{{quantity}} <span class="text-muted">Pieces</span></h6>                        
+                        </div>
+                        <div>
+                            <span class="text-muted">Item Price: </span><span class="text-dark fw-bold">{{item.price}}</span>
+                            <div class="mt-3">
+                                <span class="text-muted">Total Price: </span><span class="btn btn-danger"> {{price}}</span>
+                            </div>
+                        </div>                   
+                    </li>
+                </ul>    
+                {% endfor %}                
+                <div class="fs-5 fw-bold mb-1 ps-2">
+                    <span class="text-muted">ORDER DETAILS</span> 
+                </div>         
+                <ul class="list-group mb-3 pt-2">
+                    <li class="list-group-item d-flex align-items-center justify-content-between delivery">
+                        <div>
+                            <label for="payment_type" class="me-3 mt-2 text-success fw-bold">Payment Type:</label>                                                
+                        </div>
+                        <select name="payment_type" id="" class="form-select">
+                            <option value="on_delivery" selected>Cash or On Delivery</option>
+                            <option value="online_payment" selected>Online Payment</option>                        
+                        </select>
+                    </li>
+                    <li class="list-group-item d-flex align-items-center justify-content-between delivery">
+                        <div>
+                            <label for="delivery" class="me-3 mt-2 text-success fw-bold">Want Delivery ? </label>                                                
+                        </div>
+                        <span><input type="text" name="delivery" id="delivery" class="form-control" placeholder="if yes, enter campus location"></span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between readonly">
+                        <div>
+                            <h6 class="me-3 mt-2 text-primary fw-bold">Total Order Quantity:</h6> 
+                        </div>
+                        <span class="fs-3"><input type="text" class="form-control" name="total_quantity" id="" value="{{order_quantity}}" readonly></span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between readonly">
+                        <div>
+                            <h6 class="me-3 mt-2 text-primary fw-bold">Total Order Price:</h6> 
+                        </div>
+                        <span class="fs-3"><input type="text" class="form-control" name="total_price" id="" value="{{order_price}}" readonly></span>
+                    </li>                    
+                </ul>
+                <div class="text-end">
+                    <button type="submit" class="btn btn-danger" id="btn_order">Confirm Order</button>
+                </div>
+            </form>   
+        </div>
+    </div>        
+</div>
+{% include "footer.html"%}	
+<style>
+    .readonly input{
+        padding: 0% !important;
+        padding-top: 10px !important;
+        background-color: inherit !important;
+        border: none !important;
+        text-align: end !important;
+    }
+    .readonly .input:focus{
+        border: none !important;
+        text-align: end !important;
+    }
+    .delivery .form-select{
+        width: fit-content !important;
+    }    
+</style>
+<script>
+    var total_price = document.getElementById("total_price");
+    var item_id = document.getElementById("item_id");
+    var col_cart = document.getElementsByName("col_cart");    
+    var btn_checkout = document.getElementById("btn_checkout");    
+    function cart(){
+        id = event.target.id
+        var d = document.getElementById(id);
+        if(d.className.includes("bg-light") != true){
+            d.classList.add("bg-light");
+        }
+        for(let i=0; i<col_cart.length; i++){
+            if (col_cart[i].id != d.id && col_cart[i].className.includes("bg-light")){
+                col_cart[i].classList.remove("bg-light");
+            }
+        }
+        var dict = {}
+        dict["item"] = id
+        $.ajax({
+            type: "GET",
+            url: "{% url 'cart' %}",
+            data: dict,
+            dataType: "json",
+            success:function(response){
+                item_id.innerHTML = id;
+                item_id.value = id;
+                total_price.innerHTML = response.resp;
+                total_price.value = response.resp;
+                btn_checkout.disabled = false;
+            },
+            error:function(response){
+                console.log(response.resp);
+            },
+            });
+    }
+
+</script>
+{% endblock content %}

@@ -1,0 +1,135 @@
+{% extends "main.html" %}
+
+{% load static %}
+
+{% block content %}
+{% include "header.html" %}
+<div class="container d-flex justify-content-center py-5">
+    <div class="col-md-6 mb-4">
+        <div class="fs-4 fw-bold mb-1 ps-2">
+            <span class="text-muted">ORDER DETAILS</span> 
+        </div>         
+        {% if messages %}
+        <div class="messages text-danger text-center fs-4">
+            {% for message in messages %}
+            <span {% if message.tags %} class="{{ message.tags }}" {% endif %}>{{message}}</span>
+            {% endfor %}
+        </div>
+        {% endif %}
+        <form class="container px-2 py-2" action="" method="post">
+            {% csrf_token %}            
+            <ul class="list-group mb-3 pt-2">
+                <li class="list-group-item d-flex justify-content-between readonly">
+                    <div>
+                        <h6 class="me-3 mt-2 text-success fw-bold">Name:</h6> 
+                    </div>
+                    <span class="fs-3" ><input type="text" class="form-control" name="name" id="" value="{{item.name|truncatechars:15}}" readonly></span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between readonly">
+                    <div>
+                        <h6 class="me-3 mt-2 text-success fw-bold">Description:</h6> 
+                    </div>
+                    {% if item.description == '' %}
+                    <span class="fs-3" ><input type="text" class="form-control" name="description" id="" value="No description" readonly></span>
+                    {% else %}
+                    <span class="fs-3" ><input type="text" class="form-control" name="description" id="" value="{{item.description|truncatechars:40}}" readonly></span>
+                    {% endif %}
+                </li>
+                <li class="list-group-item d-flex justify-content-between readonly">
+                    <div>
+                        <h6 class="me-3 mt-2 text-success fw-bold">Price:</h6> 
+                    </div>
+                    <span class="fs-3" ><input type="text" class="form-control" name="item_price" value="{{item.price}}"readonly></span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between readonly">
+                    <div>
+                        <h6 class="me-3 mt-2 text-success fw-bold">Quantity:</h6> 
+                    </div>
+                    <span class="fs-3" ><input type="text" class="form-control" name="quantity" id="" value="{{quantity}}" readonly></span>
+                </li>
+                <li class="list-group-item d-flex align-items-center justify-content-between delivery">
+                    <div>
+                        <label for="payment_type" class="me-3 mt-2 text-success fw-bold">Payment Type:</label>                                                
+                    </div>
+                    <select name="payment_type" id="" class="form-select">
+                        <option value="on_delivery" selected>Cash or On Delivery</option>
+                        <option value="online_payment" selected>Online Payment</option>                        
+                    </select>
+                </li>
+                <li class="list-group-item d-flex align-items-center justify-content-between delivery">
+                    <div>
+                        <label for="delivery" class="me-3 mt-2 text-success fw-bold">Want Delivery ? </label>                                                
+                    </div>
+                    <span><input type="text" name="delivery" id="delivery" class="form-control" placeholder="if yes, enter campus location"></span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between readonly">
+                    <div>
+                        <h6 class="me-3 mt-2 text-primary fw-bold">Total Price:</h6> 
+                    </div>
+                    <span class="fs-3"><input type="text" class="form-control" name="price" id="" value="{{price}}" readonly></span>
+                </li>
+
+            </ul>
+            <input type="hidden" name="item" id="item" value="{{item.id}}"/>
+            <div class="text-end">
+                <button type="submit" class="btn btn-danger" id="btn_order">Confirm Order</button>
+            </div>
+        </form>
+    </div> 
+</div>
+
+{% include "footer.html"%}	
+<style>
+    .readonly input{
+        padding: 0% !important;
+        padding-top: 10px !important;
+        background-color: inherit !important;
+        border: none !important;
+        text-align: end !important;
+    }
+    .readonly .input:focus{
+        border: none !important;
+        text-align: end !important;
+    }
+    .delivery .form-select{
+        width: fit-content !important;
+    }    
+</style>
+<script>
+    var total_price = document.getElementById("total_price");
+    var item_id = document.getElementById("item_id");
+    var col_cart = document.getElementsByName("col_cart");    
+    var btn_checkout = document.getElementById("btn_checkout");    
+    function cart(){
+        id = event.target.id
+        var d = document.getElementById(id);
+        if(d.className.includes("bg-light") != true){
+            d.classList.add("bg-light");
+        }
+        for(let i=0; i<col_cart.length; i++){
+            if (col_cart[i].id != d.id && col_cart[i].className.includes("bg-light")){
+                col_cart[i].classList.remove("bg-light");
+            }
+        }
+        var dict = {}
+        dict["item"] = id
+        $.ajax({
+            type: "GET",
+            url: "{% url 'cart' %}",
+            data: dict,
+            dataType: "json",
+            success:function(response){
+                item_id.innerHTML = id;
+                item_id.value = id;
+                total_price.innerHTML = response.resp;
+                total_price.value = response.resp;
+                btn_checkout.disabled = false;
+            },
+            error:function(response){
+                console.log(response.resp);
+            },
+            });
+    }
+
+</script>
+{% endblock content %}

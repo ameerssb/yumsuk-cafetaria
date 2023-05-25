@@ -1,0 +1,407 @@
+{% extends "main.html" %}
+
+{% load static %}
+
+{% block content %}
+{% include "header.html" %}
+
+<div class="container-fluid pt-3">
+  <div class="album py-2">
+    <div class="container">
+          <div class="row d-flex justify-content-center align-items-center">
+              <div role="alert" id="alert" hidden>
+                <span id="text-alert"></span>
+                <button type="button" id="button-alert" class="btn-close" aria-label="Close"></button>
+              </div>  
+            <div class="col-sm-auto">
+              <input type="search" name="search" id="search" class="form-control form-control-lg" placeholder="Search For items here" style="width: 300px !important;">
+            </div>
+            <div class="col-sm-auto">
+              <p class="mx-3 mt-2 fs-5 text-success" id="text-order-selected" hidden></p>
+            </div>
+            <div class="col-sm-auto">
+              <button type="button" id="order-selected" onclick="MultiOrder();" class="btn btn-primary" hidden>Order Selected</button>
+            </div>
+          </div>
+          <p class="text-danger text-center" id="searchoutput"></p>
+          <div class="row" id="id_row">
+            {% for row in values %}
+            <div class="mt-2">
+              <p><span class="text-success">Category: </span>{{row.0}}</p>              
+            </div>
+            {% for item in row.1 %}
+              <div class="col-lg-4">
+                  <div class="card mb-3 shadow-sm">
+                    <div class="">
+                      {% if item.image %}
+                      <img src="{{ item.image.url }}" alt="image" id="" class="img-fluid" width="100%" style="height: 250px !important;">
+                      {% else %}                  
+                      <img src="{% static 'assets/images/ferrari.jpg' %}" alt="" class="img-fluid"width="100%" style="height: 250px !important;">
+                      {% endif %}
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">{{ item.name }}</p>
+                        {% if item.description %}
+                          <p class="text-secondary">{{ item.description|truncatechars:30 }}</p>
+                        {% else %}
+                          <p class="text-secondary">No description available</p>
+                        {% endif %}
+                            <div>
+                              {% csrf_token %}
+                              <input type="hidden" value="{{item.id}}" name="id_{{item.id}}" id="id_{{item.id}}" />
+                              <div class="row">
+                                <div class="col-md-6 mb-2">
+                                  <span class="btn btn-dark btn-sm">{{item.price}}</span>
+                                </div>
+                                <div class="col-md-6 d-flex flex-row-reverse mb-2">
+                                  <input type="number" min="0" max="10" name="count" id="number{{item.id}}id" placeholder="number of items" class="form-control form-control-sm" required>
+                                </div>
+                                <div class="col-md-5">
+                                  <div class="form-check">
+                                    <input type="checkbox" onclick="checker();" name="want" id="{{item.id}}" class="form-check-input">
+                                    <label for="want" class="form-check-label">Add item</label>  
+                                  </div>                                
+                                </div>
+                                <div class="col-md-7 d-flex flex-row-reverse">
+                                  <div class="d-flex align-items-center">
+                                      <button class="btn btn-primary btn-sm mx-1" type="button" id="{{item.id}}" onclick="QuickOrder();">Order</button>
+                                      <button class="btn btn-warning btn-sm" type="button" id="{{item.id}}" onclick="AddCart();">Add to Cart</button>                                        
+                                  </div>                         
+                                </div>
+                                <div class="d-flex flex-row-reverse">
+                                  <span id="id_error" name="error" class="text-danger"></span>
+                                  <span id="{{item.id}}error" class="text-danger"></span>                                                                  
+                                </div>
+                              </div>    
+                            </div>
+                    </div>
+                  </div>
+              </div>
+            {% endfor %}
+            {% endfor %}
+          </div>
+    </div>
+</div>
+
+</div>						
+
+{% include "footer.html"%}	
+
+<script>
+  var alert = document.getElementById("alert");
+  var button_alert = document.getElementById("button-alert");
+  var search = document.getElementById("search");
+  var csrf_toke = document.getElementsByName("csrfmiddlewaretoken"); 
+  var row = document.getElementById("id_row");
+  var select = document.getElementsByName("want");
+  var text_order_selected = document.getElementById("text-order-selected");
+  var order_selected = document.getElementById("order-selected");
+  var data = document.getElementsByName("id");
+  var order_button = {} 
+
+  button_alert.onclick = function(){
+    alert.hidden = true;
+  };
+
+  function checker(){
+    var count = 0    
+    var item = document.getElementsByName("count");
+    var error = document.querySelectorAll('#id_error');
+    for(let i=0; i<select.length; i++){
+      if (select[i].checked == true){
+        if (item[i].value == 0 || item[i].value == ''){
+            error[i].innerHTML = "can't order zero item";
+        }
+        else if(item[i].value > 10){
+          error[i].innerHTML = "can't order more than 10 items at a time";    
+        }
+        else{
+          order_button[i] = item[i]
+          count += 1;
+        }
+      }
+      else{
+        error[i].innerHTML = "";    
+      }
+    }
+    if (count > 0){
+      text_order_selected.innerHTML = count + " item(s)";
+      text_order_selected.hidden = false;
+      order_selected.hidden = false;
+    }
+    else{
+      text_order_selected.innerHTML = "";
+      text_order_selected.hidden = true;
+      order_selected.hidden = true;    
+    }
+    
+    return order_button;
+  }
+    
+  search.addEventListener("input",function(){
+    console.log(search.value);
+    if(search.value.length == 0){
+      sea = "__";
+    }
+    else{
+      sea = search.value;
+    }
+    searcher(sea);
+  });
+
+  function QuickOrder(){
+    var quick_item = document.getElementById("number"+event.target.id+"id");
+    var id = document.getElementById("id_"+event.target.id)
+    console.log(id.value)
+    var quick_error = document.getElementById(event.target.id+"error");  
+    if (quick_item.value == 0){
+      quick_error.innerHTML = "can't order zero item";
+    }
+    else if(quick_item.value > 10){
+      quick_error.innerHTML = "can't order more than 10 items at a time";    
+    }
+    else{
+      quick_error.innerHTML = "";
+      var dict = {}
+      dict["quantity"] = quick_item.value;
+      dict["id"] = id.value;
+      var url = '/order/quick/'+id.value+'/'+quick_item.value+'/'; 
+      window.location = url;
+    }  
+  }
+
+  function MultiOrder(){
+    var id = "";
+    var quantity = "";
+    for(i in order_button){
+      var s =  order_button[i].id
+      var re = /[0-9]/g;
+      s = s.match(re)
+      var re = "" 
+      for(let i in s){ re += s[i]}
+      quantity += order_button[i].value + "-"
+      id += re + "-"      
+    }
+    var url = '/order/items/'+id+'/'+quantity+'/';
+    window.location = url;     
+  }
+
+  function AddCart(){
+    var cart_item = document.getElementById("number"+event.target.id+"id");
+    var cart_error = document.getElementById(event.target.id+"error");  
+    if (cart_item.value == 0){
+      cart_error.innerHTML = "can't add zero item";
+    }
+    else if(cart_item.value > 10){
+      cart_error.innerHTML = "can't add more than 10 items at a time";    
+    }
+    else{
+      cart_error.innerHTML = "";
+      var dict = {}
+      dict["csrfmiddlewaretoken"] = csrf_toke[0].value
+      dict["item"] = event.target.id
+      dict["quantity"] = cart_item.value;
+      $.ajax({
+            type: "POST",
+            url: "{% url 'cart' %}",
+            data: dict,
+            dataType: "json",
+            success:function(response){
+              $("#cart").html(response.cart);
+              alert.className = '';
+              alert.classList.add("container-fluid","alert","alert-success","alert-dismissible","fade","show");
+              var text = document.getElementById('text-alert');
+              text.innerHTML = response.message;
+              alert.hidden = false;
+              console.log(response.message);
+            },
+            error:function(response){
+              console.log(response.message);
+            },
+          });
+    }
+  }
+
+  function searcher(search){
+      var dict = {}
+      dict["search"] = search
+      const csrf_token = $.extend(true,{},csrf_toke[0]);                                 
+      $.ajax({
+        type: "GET",
+        url: "",
+        data: dict,
+        dataType: "json",
+        success:function(response){
+          data = response.resp
+          category = response.category
+          var searchoutput = document.getElementById("searchoutput");
+          row.innerHTML = ''
+          // console.log(response);
+          if(data.length == 0){
+            searchoutput.innerHTML = "We are sorry, No food with this name is available";
+          }
+          else{
+            searchoutput.innerHTML = "";
+            for(let i= 0; i<category.length; i++){
+              var category_count = 0;
+              var col_cat = document.createElement("div");
+                col_cat.classList.add("mt-2");
+                col_cat.name = "cat"
+                  var p_cat = document.createElement("p");
+                    var span_cat1 = document.createElement("span");
+                    span_cat1.classList.add("text-success");
+                    span_cat1.innerHTML = "Category: ";
+                    var span_cat2 = document.createElement("span");
+                    span_cat2.innerHTML = category[i].name;           
+                  p_cat.append(span_cat1,span_cat2);
+                col_cat.append(p_cat);
+                row.append(col_cat);
+                for(let j = 0; j<data.length; j++){
+                if(category[i].id == data[j].category_id){
+                  category_count = 1;                
+                  var col = document.createElement("div");
+                  col.classList.add("col-lg-4");
+                    var card = document.createElement("div");
+                    card.classList.add("card","mb-3","shadow-sm");
+                      var card_header = document.createElement("div");
+                        var img = document.createElement("img");
+                        img.classList.add("img-fluid");
+                        img.style = "width:100%; height: 250px !important;"
+                        if(data[j].image.length > 0){
+                          img.src = "media/" + data[j].image;                  
+                        }
+                        else{
+                          img.src = "media/ferrari.jpg";
+                        }
+                      var card_body = document.createElement("div");
+                      card_body.classList.add("card-body");
+                        var name = document.createElement("p");
+                        name.classList.add("card-text");
+                        name.innerHTML = data[j].name
+                        name.name = "name";
+                        name.id = "name";
+                        name.value = data[j].name
+                        var desc = document.createElement("p");
+                        desc.classList.add("text-secondary");
+                        if(data[j].description.length > 0){
+                          desc.innerHTML = data[j].description
+                          desc.value = data[j].description
+                        }
+                        else{
+                          desc.innerHTML = "No description available"
+                          desc.value = "None"
+                        }
+                        desc.name = "description";
+                        desc.id = "description";
+                        var form = document.createElement("div");
+                          var csrf = document.createElement("input");
+                            csrf.hidden = true;
+                            csrf.name = csrf_token.name;
+                            csrf.value = csrf_token.value;
+                          var id = document.createElement("input");
+                          id.classList.add("form-control");
+                          id.type = "hidden"
+                          id.innerHTML = data[j].id
+                          id.name = "id"
+                          id.id = "id_"+data[j].id
+                          id.value = data[j].id                  
+                          var form_row = document.createElement("div");
+                          form_row.classList.add("row");
+                          var col_price = document.createElement("div");
+                          col_price.classList.add("col-md-6","mb-2");
+                            var price = document.createElement("span");
+                            price.classList.add("btn","btn-dark","btn-sm");
+                            price.innerHTML = data[j].price
+                            price.name = "price"
+                            price.id = "price"
+                            price.value = data[j].price
+                          var col_count = document.createElement("div");
+                          col_count.classList.add("col-md-6","mb-2","d-flex","flex-row-reverse");
+                          // var input_group = document.createElement("div");
+                          // input_group.classList.add("input-group");
+                            var number = document.createElement("input");
+                            number.classList.add("form-control","form-control-sm");
+                            number.type = "number";
+                            number.name = "count";
+                            number.id = "number"+data[j].id+"id";
+                            number.placeholder = "number of items";
+                            number.min = 0;
+                            number.max = 10;
+                            number.required = true;
+                          var col_checkbox = document.createElement("div");
+                          col_checkbox.classList.add("col-md-5");
+                            var form_check = document.createElement("div");
+                            form_check.classList.add("form-check");
+                            var checkbox = document.createElement("input");
+                              checkbox.classList.add("form-check-input");
+                              checkbox.type = "checkbox";
+                              checkbox.name = "want";
+                              checkbox.id = data[j].id;
+                              checkbox.setAttribute("onclick","checker()");
+                              checkbox.required = true;
+                              var checkbox_label = document.createElement("label");
+                              checkbox_label.classList.add("form-check-label");
+                              checkbox_label.innerHTML = "Add item";
+                              checkbox_label.for = "want";                                                 
+                          var col_button = document.createElement("div");
+                          col_button.classList.add("col-md-7","d-flex","flex-row-reverse");
+                            var div_button = document.createElement("div");
+                            div_button.classList.add("d-flex","align-items-center");    
+                              var order_button = document.createElement("button");                    
+                              order_button.classList.add("btn","btn-primary","btn-sm","mx-1");
+                              order_button.type = "button"
+                              order_button.setAttribute("onclick","QuickOrder()");
+                              order_button.id=data[j].id;
+                              order_button.innerHTML = "Order"
+                              var cart_button = document.createElement("button");                    
+                              cart_button.classList.add("btn","btn-warning","btn-sm");
+                              cart_button.type = "button"
+                              cart_button.setAttribute("onclick","AddCart()");
+                              cart_button.id=data[j].id;
+                              cart_button.innerHTML = "Add to Cart"
+                          var col_error = document.createElement("div");
+                          col_error.classList.add("d-flex","flex-row-reverse");
+                            var error_text = document.createElement("span");
+                              error_text.classList.add("text-danger");    
+                              error_text.id="id_error";
+                              error_text.name = "error";
+                              var error_text = document.createElement("span");
+                              error_text.classList.add("text-danger");    
+                              error_text.id="id_error";
+                              error_text.name = "error";
+                              var error_text2 = document.createElement("span");
+                              error_text2.classList.add("text-danger");    
+                              error_text2.id= data[j].id+"error";
+                            col_error.append(error_text,error_text2);
+                            div_button.append(order_button,cart_button);
+                          col_button.append(div_button);
+                            form_check.append(checkbox,checkbox_label);
+                          col_checkbox.append(form_check);
+                          col_count.append(number);
+                          col_price.append(price);
+                        form_row.append(col_price,col_count,col_checkbox,col_button,col_error);
+                        form.append(csrf,id,form_row);
+                      card_body.append(name,desc,form);
+                      card_header.append(img);
+                    card.append(card_header,card_body);
+                  col.append(card);
+                  row.append(col);
+                }
+              }
+              if(category_count === 0){
+                  col_cat.hidden = true;
+                }
+              // console.log(data[j].name);
+            }
+            // console.log(row);
+          }
+        },
+        error:function(response){
+          console.log(response);
+        },
+      });  
+
+}
+
+</script>
+{% endblock %}
