@@ -2,6 +2,7 @@ import os
 from .models import Payment
 from paystackapi.paystack import Paystack
 paystack_secret_key = str(os.environ.get('PAYSTACK'))
+paystack_secret_key = 'sk_test_afb5899f3131f1b6aaa3bdcbf698550cc478de5c'
 paystack = Paystack(secret_key=paystack_secret_key)
 
 # Create your views here.
