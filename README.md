@@ -41,10 +41,34 @@ Database: Mysql
 Payment Integration: Paystack Api
 User Authentication: Django Authentication
 
+Installation:
+Clone the repository to your local machine.
+git clone https://github.com/ameerssb/yumsuk-cateria.git
+
+Install the required dependencies:
+cd yumsuk-cafeteria
+pip install -r requirements.txt
+
+Set up the database:
+Create a new database using your preferred database management system (e.g., PostgreSQL, MySQL, SqLite3).
+
+Update the database configuration in the settings.py file with your database details.
+
+Run database migrations to create the necessary tables:
+python manage.py migrate
+
+Create a superuser for admin access:
+python manage.py createsuperuser
+
+Start the development server:
+python manage.py runserver
+
+Access the application:
+Open a web browser and navigate to http://localhost:8000 (or the specified port if modified).
+Login with the superuser account created in step 5.
+
+License
+This project is licensed under the MIT License. Feel free to use and modify the system as per your requirements.
+
 Contributing:
 Contributions to Yumsuk Cafeteria are welcome! Whether you're a developer, designer, or tester, you can contribute by submitting bug reports, feature requests, or pull requests. Please refer to the project's documentation and guidelines for contributing.
-
-License:
-Yumsuk Cafeteria is released under the MIT license. See the LICENSE file for more details.
-
-By leveraging Yumsuk Cafeteria, we aim to enhance the food ordering experience for customers and simplify operations for cafeterias, ultimately bridging the gap between great food and satisfied customers.
